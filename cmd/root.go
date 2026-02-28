@@ -39,17 +39,36 @@ func check(e error) {
 	}
 }
 
+type (
+	MaskPattern struct {
+		Name  string `json:"name"`
+		Regex string `json:"regex"`
+	}
+)
 
+func loadPatterns(path string) ([]MaskPattern, error) {
+	var patterns []MaskPattern
+	patternsFileHandle, err := os.ReadFile(path)
+	if err != nil {
+		return patterns, err
+	}
+	err = json.Unmarshal(patternsFileHandle, &patterns)
+	return patterns, err
+}
 func Execute() {
 	IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
 	FQDN_REGEX := `(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
 	configDir := filepath.Join(os.Getenv("HOME") + "/.config/anonymizer/")
 	maskedValuesFilePath := os.Getenv("HOME") + "/.config/anonymizer/map.json"
-	patterns := make([]string, 3)
-	patterns = append(patterns, IPV4_REGEX)
-	patterns = append(patterns, FQDN_REGEX)
-
-	err := rootCmd.Execute()
+	masksPatternsFilePath := os.Getenv("HOME") + "/.config/anonymizer/maskPatterns.json"
+	maskPatterns, err := loadPatterns(masksPatternsFilePath)
+	isMaskPatternsUpdated := false
+	if err != nil {
+		maskPatterns = append(maskPatterns, MaskPattern{Name: "ipv4", Regex: IPV4_REGEX})
+		maskPatterns = append(maskPatterns, MaskPattern{Name: "fqdn", Regex: FQDN_REGEX})
+		isMaskPatternsUpdated = true
+	}
+	err = rootCmd.Execute()
 	file, err := os.Open("examples/nginx_access.log")
 	check(err)
 	defer file.Close()
@@ -63,15 +82,15 @@ func Execute() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		replaced_line := line
-		for _, pattern := range patterns {
-			regex, _ := regexp.Compile(pattern)
+		for _, pattern := range maskPatterns {
+			regex, _ := regexp.Compile(pattern.Regex)
 			sensitive_value := regex.FindString(line)
 			if len(sensitive_value) != 0 {
 				mask, present := valuesToMasks[sensitive_value]
 				if present {
 					replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 				} else {
-					mask, _ = reggen.Generate(pattern, 1)
+					mask, _ = reggen.Generate(pattern.Regex, 7)
 					valuesToMasks[sensitive_value] = mask
 					replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 					isMasksUpdated = true
@@ -81,11 +100,19 @@ func Execute() {
 		}
 		fmt.Println(replaced_line)
 	}
+
 	if isMasksUpdated {
 		err = os.MkdirAll(configDir, 0755)
 		valueMapJson, err := json.Marshal(valuesToMasks)
 		check(err)
 		err = os.WriteFile(maskedValuesFilePath, valueMapJson, 0644)
+		check(err)
+	}
+	if isMaskPatternsUpdated {
+		err = os.MkdirAll(configDir, 0755)
+		valueMapJson, err := json.Marshal(maskPatterns)
+		check(err)
+		err = os.WriteFile(masksPatternsFilePath, valueMapJson, 0644)
 		check(err)
 	}
 	if err != nil {
