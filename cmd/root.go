@@ -5,12 +5,15 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
-	"github.com/lucasjones/reggen"
-	"github.com/spf13/cobra"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/lucasjones/reggen"
+	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -25,7 +28,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -35,6 +38,12 @@ func check(e error) {
 		panic(e)
 	}
 }
+
+type (
+	MaskedValues struct {
+		Value int `json:"mask"`
+	}
+)
 
 func Execute() {
 	IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
@@ -76,7 +85,13 @@ func Execute() {
 		}
 		fmt.Println(replaced_line)
 	}
+	configDir := filepath.Join(os.Getenv("HOME")+"/.config/anonymizer/")
+	err = os.MkdirAll(configDir, 0755)
+	fileName := os.Getenv("HOME") + "/.config/anonymizer/map.json"
+	valueMapJson, err := json.Marshal(m)
+	check(err)
 
+	err = os.WriteFile(fileName, valueMapJson, 0644)
 	check(err)
 
 	if err != nil {
