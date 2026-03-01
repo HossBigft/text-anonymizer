@@ -29,10 +29,6 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		// s := bufio.NewScanner(os.Stdin)
-		// for s.Scan() {
-		// 	fmt.Println("line", s.Text())
-		// }
 
 		IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
 		FQDN_REGEX := `(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
@@ -46,6 +42,7 @@ to quickly create a Cobra application.`,
 			maskPatterns = append(maskPatterns, MaskPattern{Name: "fqdn", Regex: FQDN_REGEX})
 			isMaskPatternsUpdated = true
 		}
+
 		file, err := os.Open("examples/nginx_access.log")
 		check(err)
 		defer file.Close()
@@ -54,29 +51,76 @@ to quickly create a Cobra application.`,
 		maskedValuesFileHandle, err := os.ReadFile(maskedValuesFilePath)
 		err = json.Unmarshal(maskedValuesFileHandle, &valuesToMasks)
 
-		scanner := bufio.NewScanner(file)
 		var isMasksUpdated bool
-		for scanner.Scan() {
-			line := scanner.Text()
-			replaced_line := line
-			for _, pattern := range maskPatterns {
-				regex, _ := regexp.Compile(pattern.Regex)
-				sensitive_value := regex.FindString(line)
-				if len(sensitive_value) != 0 {
-					mask, present := valuesToMasks[sensitive_value]
-					if present {
-						replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-					} else {
-						mask, _ = reggen.Generate(pattern.Regex, 7)
-						valuesToMasks[sensitive_value] = mask
-						replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-						isMasksUpdated = true
+		if len(args) == 0 {
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				line := scanner.Text()
+				replaced_line := line
+				for _, pattern := range maskPatterns {
+					regex, _ := regexp.Compile(pattern.Regex)
+					sensitive_value := regex.FindString(line)
+					if len(sensitive_value) != 0 {
+						mask, present := valuesToMasks[sensitive_value]
+						if present {
+							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+						} else {
+							mask, _ = reggen.Generate(pattern.Regex, 7)
+							valuesToMasks[sensitive_value] = mask
+							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+							isMasksUpdated = true
+						}
 					}
-				}
 
+				}
+				fmt.Println(replaced_line)
 			}
-			fmt.Println(replaced_line)
+		} else {
+			for _, val := range strings.Split(args[0], "\n") {
+				line := val
+				replaced_line := line
+				for _, pattern := range maskPatterns {
+					regex, _ := regexp.Compile(pattern.Regex)
+					sensitive_value := regex.FindString(line)
+					if len(sensitive_value) != 0 {
+						mask, present := valuesToMasks[sensitive_value]
+						if present {
+							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+						} else {
+							mask, _ = reggen.Generate(pattern.Regex, 7)
+							valuesToMasks[sensitive_value] = mask
+							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+							isMasksUpdated = true
+						}
+					}
+
+				}
+				fmt.Println(replaced_line)
+			}
+
 		}
+		// scanner := bufio.NewScanner(file)
+		// for scanner.Scan() {
+		// 	line := scanner.Text()
+		// 	replaced_line := line
+		// 	for _, pattern := range maskPatterns {
+		// 		regex, _ := regexp.Compile(pattern.Regex)
+		// 		sensitive_value := regex.FindString(line)
+		// 		if len(sensitive_value) != 0 {
+		// 			mask, present := valuesToMasks[sensitive_value]
+		// 			if present {
+		// 				replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+		// 			} else {
+		// 				mask, _ = reggen.Generate(pattern.Regex, 7)
+		// 				valuesToMasks[sensitive_value] = mask
+		// 				replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+		// 				isMasksUpdated = true
+		// 			}
+		// 		}
+
+		// 	}
+		// 	fmt.Println(replaced_line)
+		// }
 
 		if isMasksUpdated {
 			err = os.MkdirAll(configDir, 0755)
@@ -85,6 +129,7 @@ to quickly create a Cobra application.`,
 			err = os.WriteFile(maskedValuesFilePath, valueMapJson, 0644)
 			check(err)
 		}
+
 		if isMaskPatternsUpdated {
 			err = os.MkdirAll(configDir, 0755)
 			valueMapJson, err := json.Marshal(maskPatterns)
