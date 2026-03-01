@@ -99,28 +99,6 @@ to quickly create a Cobra application.`,
 			}
 
 		}
-		// scanner := bufio.NewScanner(file)
-		// for scanner.Scan() {
-		// 	line := scanner.Text()
-		// 	replaced_line := line
-		// 	for _, pattern := range maskPatterns {
-		// 		regex, _ := regexp.Compile(pattern.Regex)
-		// 		sensitive_value := regex.FindString(line)
-		// 		if len(sensitive_value) != 0 {
-		// 			mask, present := valuesToMasks[sensitive_value]
-		// 			if present {
-		// 				replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-		// 			} else {
-		// 				mask, _ = reggen.Generate(pattern.Regex, 7)
-		// 				valuesToMasks[sensitive_value] = mask
-		// 				replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-		// 				isMasksUpdated = true
-		// 			}
-		// 		}
-
-		// 	}
-		// 	fmt.Println(replaced_line)
-		// }
 
 		if isMasksUpdated {
 			err = os.MkdirAll(configDir, 0755)
