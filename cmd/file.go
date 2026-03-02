@@ -1,18 +1,18 @@
 /*
 Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
-	"fmt"
+	"anonymizer/patternManager"
 	"bufio"
+	"encoding/json"
+	"fmt"
+	"github.com/lucasjones/reggen"
+	"github.com/spf13/cobra"
 	"os"
 	"regexp"
 	"strings"
-	"encoding/json"
-	"github.com/spf13/cobra"
-		"github.com/lucasjones/reggen"
 )
 
 // fileCmd represents the file command
@@ -26,28 +26,21 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
-		FQDN_REGEX := `(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
-		// configDir := filepath.Join(os.Getenv("HOME") + "/.config/anonymizer/")
+
 		maskedValuesFilePath := os.Getenv("HOME") + "/.config/anonymizer/map.json"
-		masksPatternsFilePath := os.Getenv("HOME") + "/.config/anonymizer/maskPatterns.json"
-		maskPatterns, err := loadPatterns(masksPatternsFilePath)
+
+		maskManager := patternmanager.NewMaskManager()
+		maskPatterns := maskManager.GetPatterns()
+
 		isMaskPatternsUpdated := false
-		if err != nil {
-			maskPatterns = append(maskPatterns, MaskPattern{Name: "ipv4", Regex: IPV4_REGEX})
-			maskPatterns = append(maskPatterns, MaskPattern{Name: "fqdn", Regex: FQDN_REGEX})
-			isMaskPatternsUpdated = true
-		}
-		fmt.Println("file called")
 		filePath := args[0]
 		file, err := os.Open(filePath)
 		check(err)
 		defer file.Close()
-				valuesToMasks := make(map[string]string)
+		valuesToMasks := make(map[string]string)
 		maskedValuesFileHandle, err := os.ReadFile(maskedValuesFilePath)
 		err = json.Unmarshal(maskedValuesFileHandle, &valuesToMasks)
 		scanner := bufio.NewScanner(file)
-		var isMasksUpdated bool
 		for scanner.Scan() {
 			line := scanner.Text()
 			replaced_line := line
@@ -62,13 +55,15 @@ to quickly create a Cobra application.`,
 						mask, _ = reggen.Generate(pattern.Regex, 7)
 						valuesToMasks[sensitive_value] = mask
 						replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-						isMasksUpdated = true
+						isMaskPatternsUpdated = true
 					}
 				}
 
 			}
 			fmt.Println(replaced_line)
-			fmt.Println(isMaskPatternsUpdated, isMasksUpdated)
+			if isMaskPatternsUpdated {
+				maskManager.SavePatterns()
+			}
 		}
 	},
 }

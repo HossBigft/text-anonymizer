@@ -4,16 +4,16 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"anonymizer/patternManager"
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/lucasjones/reggen"
+	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/lucasjones/reggen"
-	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -30,19 +30,11 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 
-		IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
-		FQDN_REGEX := `(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
 		configDir := filepath.Join(os.Getenv("HOME") + "/.config/anonymizer/")
 		maskedValuesFilePath := os.Getenv("HOME") + "/.config/anonymizer/map.json"
-		masksPatternsFilePath := os.Getenv("HOME") + "/.config/anonymizer/maskPatterns.json"
-		maskPatterns, err := loadPatterns(masksPatternsFilePath)
+		maskManager := patternmanager.NewMaskManager()
+		maskPatterns := maskManager.GetPatterns()
 		isMaskPatternsUpdated := false
-		if err != nil {
-			maskPatterns = append(maskPatterns, MaskPattern{Name: "ipv4", Regex: IPV4_REGEX})
-			maskPatterns = append(maskPatterns, MaskPattern{Name: "fqdn", Regex: FQDN_REGEX})
-			isMaskPatternsUpdated = true
-		}
-
 		file, err := os.Open("examples/nginx_access.log")
 		check(err)
 		defer file.Close()
@@ -109,11 +101,7 @@ to quickly create a Cobra application.`,
 		}
 
 		if isMaskPatternsUpdated {
-			err = os.MkdirAll(configDir, 0755)
-			valueMapJson, err := json.Marshal(maskPatterns)
-			check(err)
-			err = os.WriteFile(masksPatternsFilePath, valueMapJson, 0644)
-			check(err)
+			maskManager.SavePatterns()
 		}
 	},
 }
@@ -133,17 +121,7 @@ type (
 	}
 )
 
-func loadPatterns(path string) ([]MaskPattern, error) {
-	var patterns []MaskPattern
-	patternsFileHandle, err := os.ReadFile(path)
-	if err != nil {
-		return patterns, err
-	}
-	err = json.Unmarshal(patternsFileHandle, &patterns)
-	return patterns, err
-}
 func Execute() {
-
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
