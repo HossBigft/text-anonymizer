@@ -11,13 +11,13 @@ type (
 		Name  string `json:"name"`
 		Regex string `json:"regex"`
 	}
-	MaskManager struct {
+	PatternManager struct {
 		maskPatterns []MaskPattern
 	}
 )
 
-func NewMaskManager() *MaskManager {
-	newManager := MaskManager{}
+func NewPatternManager() *PatternManager {
+	newManager := PatternManager{}
 	newManager.loadConfig()
 	return &newManager
 }
@@ -35,7 +35,7 @@ func readConfig(path string) ([]MaskPattern, error) {
 	return patterns, err
 }
 
-func (m *MaskManager) loadConfig() error {
+func (m *PatternManager) loadConfig() error {
 	IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
 	FQDN_REGEX := `(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
 	patterns, err := readConfig(configFilePath)
@@ -49,7 +49,7 @@ func (m *MaskManager) loadConfig() error {
 	return err
 }
 
-func (m *MaskManager) GetPatterns() []MaskPattern {
+func (m *PatternManager) GetPatterns() []MaskPattern {
 	return m.maskPatterns
 }
 
@@ -58,7 +58,7 @@ func check(e error) {
 		panic(e)
 	}
 }
-func (m *MaskManager) SavePatterns() error {
+func (m *PatternManager) SavePatterns() error {
 	err := os.MkdirAll(configDir, 0755)
 	valueMapJson, err := json.Marshal(m.maskPatterns)
 	err = os.WriteFile(configFilePath, valueMapJson, 0644)

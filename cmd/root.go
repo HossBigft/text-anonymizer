@@ -4,16 +4,16 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"anonymizer/patternManager"
+	maskmanager "anonymizer/maskManager"
+	patternmanager "anonymizer/patternManager"
 	"bufio"
-	"encoding/json"
 	"fmt"
-	"github.com/lucasjones/reggen"
-	"github.com/spf13/cobra"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/lucasjones/reggen"
+	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -29,19 +29,10 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-
-		configDir := filepath.Join(os.Getenv("HOME") + "/.config/anonymizer/")
-		maskedValuesFilePath := os.Getenv("HOME") + "/.config/anonymizer/map.json"
-		maskManager := patternmanager.NewMaskManager()
-		maskPatterns := maskManager.GetPatterns()
+		maskManager := maskmanager.NewMaskManager()
+		patternManager := patternmanager.NewPatternManager()
+		maskPatterns := patternManager.GetPatterns()
 		isMaskPatternsUpdated := false
-		file, err := os.Open("examples/nginx_access.log")
-		check(err)
-		defer file.Close()
-
-		valuesToMasks := make(map[string]string)
-		maskedValuesFileHandle, err := os.ReadFile(maskedValuesFilePath)
-		err = json.Unmarshal(maskedValuesFileHandle, &valuesToMasks)
 
 		var isMasksUpdated bool
 		if len(args) == 0 {
@@ -53,12 +44,12 @@ to quickly create a Cobra application.`,
 					regex, _ := regexp.Compile(pattern.Regex)
 					sensitive_value := regex.FindString(line)
 					if len(sensitive_value) != 0 {
-						mask, present := valuesToMasks[sensitive_value]
+						mask, present := maskManager.GetMask(sensitive_value)
 						if present {
 							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 						} else {
 							mask, _ = reggen.Generate(pattern.Regex, 7)
-							valuesToMasks[sensitive_value] = mask
+							maskManager.UpdateMask(sensitive_value, mask)
 							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 							isMasksUpdated = true
 						}
@@ -75,12 +66,12 @@ to quickly create a Cobra application.`,
 					regex, _ := regexp.Compile(pattern.Regex)
 					sensitive_value := regex.FindString(line)
 					if len(sensitive_value) != 0 {
-						mask, present := valuesToMasks[sensitive_value]
+						mask, present := maskManager.GetMask(sensitive_value)
 						if present {
 							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 						} else {
 							mask, _ = reggen.Generate(pattern.Regex, 7)
-							valuesToMasks[sensitive_value] = mask
+							maskManager.UpdateMask(sensitive_value, mask)
 							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 							isMasksUpdated = true
 						}
@@ -93,15 +84,14 @@ to quickly create a Cobra application.`,
 		}
 
 		if isMasksUpdated {
-			err = os.MkdirAll(configDir, 0755)
-			valueMapJson, err := json.Marshal(valuesToMasks)
-			check(err)
-			err = os.WriteFile(maskedValuesFilePath, valueMapJson, 0644)
-			check(err)
+			err := maskManager.SaveMasks()
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 
 		if isMaskPatternsUpdated {
-			maskManager.SavePatterns()
+			patternManager.SavePatterns()
 		}
 	},
 }
