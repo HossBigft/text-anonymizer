@@ -16,6 +16,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var filePath string
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "anonymizer",
@@ -33,10 +35,13 @@ to quickly create a Cobra application.`,
 		patternManager := patternmanager.NewPatternManager()
 		maskPatterns := patternManager.GetPatterns()
 		isMaskPatternsUpdated := false
-
 		var isMasksUpdated bool
-		if len(args) == 0 {
-			scanner := bufio.NewScanner(os.Stdin)
+		if len(filePath) > 0 {
+			file, err := os.Open(filePath)
+			check(err)
+			defer file.Close()
+
+			scanner := bufio.NewScanner(file)
 			for scanner.Scan() {
 				line := scanner.Text()
 				replaced_line := line
@@ -51,36 +56,64 @@ to quickly create a Cobra application.`,
 							mask, _ = reggen.Generate(pattern.Regex, 7)
 							maskManager.UpdateMask(sensitive_value, mask)
 							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-							isMasksUpdated = true
+							isMaskPatternsUpdated = true
 						}
 					}
 
 				}
 				fmt.Println(replaced_line)
+				if isMaskPatternsUpdated {
+					patternManager.SavePatterns()
+				}
 			}
 		} else {
-			for _, val := range strings.Split(args[0], "\n") {
-				line := val
-				replaced_line := line
-				for _, pattern := range maskPatterns {
-					regex, _ := regexp.Compile(pattern.Regex)
-					sensitive_value := regex.FindString(line)
-					if len(sensitive_value) != 0 {
-						mask, present := maskManager.GetMask(sensitive_value)
-						if present {
-							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-						} else {
-							mask, _ = reggen.Generate(pattern.Regex, 7)
-							maskManager.UpdateMask(sensitive_value, mask)
-							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-							isMasksUpdated = true
+			if len(args) == 0 {
+				scanner := bufio.NewScanner(os.Stdin)
+				for scanner.Scan() {
+					line := scanner.Text()
+					replaced_line := line
+					for _, pattern := range maskPatterns {
+						regex, _ := regexp.Compile(pattern.Regex)
+						sensitive_value := regex.FindString(line)
+						if len(sensitive_value) != 0 {
+							mask, present := maskManager.GetMask(sensitive_value)
+							if present {
+								replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+							} else {
+								mask, _ = reggen.Generate(pattern.Regex, 7)
+								maskManager.UpdateMask(sensitive_value, mask)
+								replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+								isMasksUpdated = true
+							}
 						}
+
 					}
-
+					fmt.Println(replaced_line)
 				}
-				fmt.Println(replaced_line)
-			}
+			} else {
+				for _, val := range strings.Split(args[0], "\n") {
+					line := val
+					replaced_line := line
+					for _, pattern := range maskPatterns {
+						regex, _ := regexp.Compile(pattern.Regex)
+						sensitive_value := regex.FindString(line)
+						if len(sensitive_value) != 0 {
+							mask, present := maskManager.GetMask(sensitive_value)
+							if present {
+								replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+							} else {
+								mask, _ = reggen.Generate(pattern.Regex, 7)
+								maskManager.UpdateMask(sensitive_value, mask)
+								replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+								isMasksUpdated = true
+							}
+						}
 
+					}
+					fmt.Println(replaced_line)
+				}
+
+			}
 		}
 
 		if isMasksUpdated {
@@ -104,13 +137,6 @@ func check(e error) {
 	}
 }
 
-type (
-	MaskPattern struct {
-		Name  string `json:"name"`
-		Regex string `json:"regex"`
-	}
-)
-
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -127,5 +153,5 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().StringVarP(&filePath, "file", "f", "", "File to process")
 }
