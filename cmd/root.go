@@ -43,8 +43,11 @@ to quickly create a Cobra application.`,
 				replaced_line := line
 				for _, pattern := range maskPatterns {
 					regex, _ := regexp.Compile(pattern.Regex)
-					sensitive_value := regex.FindString(line)
-					if len(sensitive_value) != 0 {
+					sensitive_values := regex.FindAllString(replaced_line, -1)
+					for _, sensitive_value := range sensitive_values {
+						if len(sensitive_value) == 0 {
+							break
+						}
 						mask, present := maskManager.GetMask(sensitive_value)
 						if present {
 							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
@@ -52,10 +55,9 @@ to quickly create a Cobra application.`,
 							mask, _ = reggen.Generate(pattern.Regex, 7)
 							maskManager.UpdateMask(sensitive_value, mask)
 							replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-							isMaskPatternsUpdated = true
+							isMasksUpdated = true
 						}
 					}
-
 				}
 				fmt.Println(replaced_line)
 				if isMaskPatternsUpdated {
@@ -64,27 +66,32 @@ to quickly create a Cobra application.`,
 			}
 		} else {
 			if len(args) == 0 {
-				scanner := bufio.NewScanner(os.Stdin)
-				for scanner.Scan() {
-					line := scanner.Text()
-					replaced_line := line
-					for _, pattern := range maskPatterns {
-						regex, _ := regexp.Compile(pattern.Regex)
-						sensitive_value := regex.FindString(line)
-						if len(sensitive_value) != 0 {
-							mask, present := maskManager.GetMask(sensitive_value)
-							if present {
-								replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-							} else {
-								mask, _ = reggen.Generate(pattern.Regex, 7)
-								maskManager.UpdateMask(sensitive_value, mask)
-								replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-								isMasksUpdated = true
+				stat, _ := os.Stdin.Stat()
+				if (stat.Mode() & os.ModeCharDevice) == 0 {
+					scanner := bufio.NewScanner(os.Stdin)
+					for scanner.Scan() {
+						line := scanner.Text()
+						replaced_line := line
+						for _, pattern := range maskPatterns {
+							regex, _ := regexp.Compile(pattern.Regex)
+							sensitive_values := regex.FindAllString(replaced_line, -1)
+							for _, sensitive_value := range sensitive_values {
+								if len(sensitive_value) == 0 {
+									break
+								}
+								mask, present := maskManager.GetMask(sensitive_value)
+								if present {
+									replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+								} else {
+									mask, _ = reggen.Generate(pattern.Regex, 7)
+									maskManager.UpdateMask(sensitive_value, mask)
+									replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+									isMasksUpdated = true
+								}
 							}
 						}
-
+						fmt.Println(replaced_line)
 					}
-					fmt.Println(replaced_line)
 				}
 			} else {
 				for _, val := range strings.Split(args[0], "\n") {
@@ -92,8 +99,11 @@ to quickly create a Cobra application.`,
 					replaced_line := line
 					for _, pattern := range maskPatterns {
 						regex, _ := regexp.Compile(pattern.Regex)
-						sensitive_value := regex.FindString(line)
-						if len(sensitive_value) != 0 {
+						sensitive_values := regex.FindAllString(replaced_line, -1)
+						for _, sensitive_value := range sensitive_values {
+							if len(sensitive_value) == 0 {
+								break
+							}
 							mask, present := maskManager.GetMask(sensitive_value)
 							if present {
 								replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
@@ -104,7 +114,6 @@ to quickly create a Cobra application.`,
 								isMasksUpdated = true
 							}
 						}
-
 					}
 					fmt.Println(replaced_line)
 				}
