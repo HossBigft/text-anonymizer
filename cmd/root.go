@@ -17,12 +17,15 @@ import (
 )
 
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {
-	replaced_line := rawLine
+	var replaced_line string
 	maskPatterns := patternManager.GetPatterns()
 	isMasksUpdated := false
 	for _, pattern := range maskPatterns {
+		if len(replaced_line) == 0 {
+			replaced_line = rawLine
+		}
 		regex, _ := regexp.Compile(pattern.Regex)
-		sensitive_values := regex.FindAllString(replaced_line, -1)
+		sensitive_values := regex.FindAllString(rawLine, -1)
 		for _, sensitive_value := range sensitive_values {
 			mask, present := maskManager.GetMask(sensitive_value)
 			if present {
