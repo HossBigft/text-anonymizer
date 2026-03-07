@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-
-	"github.com/lucasjones/reggen"
 )
 
 type (
@@ -68,27 +66,16 @@ func (m *PatternManager) SavePatterns() error {
 	return err
 }
 
-func (self *PatternManager) MapValuesToMasks(rawLine string) (map[string]string, error) {
-	valuesToMaskMap := make(map[string]string)
+func (self *PatternManager) MapSensitiveValuesToPatterns(rawLine string) (map[string]MaskPattern, error) {
+	valuesToMaskMap := make(map[string]MaskPattern)
 	var err error
 	for _, pattern := range self.GetPatterns() {
 		var regex *regexp.Regexp
 		regex, err = regexp.Compile(pattern.Regex)
 		sensitive_values := regex.FindAllString(rawLine, -1)
 		for _, value := range sensitive_values {
-			valuesToMaskMap[value] = self.getRandomStringByRegex(pattern)
+			valuesToMaskMap[value] = pattern
 		}
 	}
 	return valuesToMaskMap, err
-}
-
-func (self *PatternManager) getRandomStringByRegex(maskPattern MaskPattern, maxLength_optional ...int) string {
-	var maxLength int
-	if len(maxLength_optional) == 0 {
-		maxLength = 7
-	} else {
-		maxLength = maxLength_optional[0]
-	}
-	randomString, _ := reggen.Generate(maskPattern.Regex, maxLength)
-	return randomString
 }

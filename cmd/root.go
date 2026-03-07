@@ -17,8 +17,8 @@ import (
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {
 	var replaced_line string
 	isMasksUpdated := false
-	valuesToMaskMap, _ := patternManager.MapValuesToMasks(rawLine)
-	for sensitive_value, mask := range valuesToMaskMap {
+	valuesToMaskMap, _ := patternManager.MapSensitiveValuesToPatterns(rawLine)
+	for sensitive_value, maskPattern := range valuesToMaskMap {
 		if len(replaced_line) == 0 {
 			replaced_line = rawLine
 		}
@@ -26,9 +26,10 @@ func mask(rawLine string, patternManager patternmanager.PatternManager, maskMana
 		if present {
 			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, currMask)
 		} else {
-			maskManager.UpdateMask(sensitive_value, mask)
+			newMask := maskManager.GetRandomStringByRegex(maskPattern.Regex)
+			maskManager.UpdateMask(sensitive_value, newMask)
 			isMasksUpdated = true
-			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, newMask)
 		}
 	}
 	if isMasksUpdated {

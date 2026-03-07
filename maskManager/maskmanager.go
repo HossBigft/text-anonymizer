@@ -2,6 +2,7 @@ package maskmanager
 
 import (
 	"encoding/json"
+	"github.com/lucasjones/reggen"
 	"os"
 	"path/filepath"
 )
@@ -56,4 +57,15 @@ func (self *MaskManager) UpdateMask(value string, mask string) {
 func (self *MaskManager) GetMask(value string) (string, bool) {
 	mask, isSuccesful := self.maskMap[value]
 	return mask, isSuccesful
+}
+
+func (self *MaskManager) GetRandomStringByRegex(regex string, maxLength_optional ...int) string {
+	var maxLength int
+	if len(maxLength_optional) == 0 {
+		maxLength = 7
+	} else {
+		maxLength = maxLength_optional[0]
+	}
+	randomString, _ := reggen.Generate(regex, maxLength)
+	return randomString
 }
