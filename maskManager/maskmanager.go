@@ -1,10 +1,12 @@
 package maskmanager
 
 import (
+	patternmanager "anonymizer/patternManager"
 	"encoding/json"
-	"github.com/lucasjones/reggen"
 	"os"
 	"path/filepath"
+
+	"github.com/lucasjones/reggen"
 )
 
 type (
@@ -54,9 +56,20 @@ func (self *MaskManager) UpdateMask(value string, mask string) {
 	self.maskMap[value] = mask
 }
 
-func (self *MaskManager) GetMask(value string) (string, bool) {
-	mask, isSuccesful := self.maskMap[value]
-	return mask, isSuccesful
+func (self *MaskManager) MapValuesToMasks(match patternmanager.PatternMatch) map[string]string {
+	isMasksUpdated := false
+	for _, value := range match.Matches {
+		mask, present := self.maskMap[value]
+		if present == false {
+			mask = self.GetRandomStringByRegex(match.MaskPattern.Regex)
+			self.maskMap[value] = mask
+			isMasksUpdated = true
+		}
+	}
+	if isMasksUpdated {
+		self.SaveMasks()
+	}
+	return self.maskMap
 }
 
 func (self *MaskManager) GetRandomStringByRegex(regex string, maxLength_optional ...int) string {

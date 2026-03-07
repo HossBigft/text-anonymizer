@@ -12,8 +12,14 @@ type (
 		Name  string `json:"name"`
 		Regex string `json:"regex"`
 	}
+
 	PatternManager struct {
 		maskPatterns []MaskPattern
+	}
+
+	PatternMatch struct {
+		Matches     []string
+		MaskPattern MaskPattern
 	}
 )
 
@@ -66,16 +72,15 @@ func (m *PatternManager) SavePatterns() error {
 	return err
 }
 
-func (self *PatternManager) MapSensitiveValuesToPatterns(rawLine string) (map[string]MaskPattern, error) {
-	valuesToMaskMap := make(map[string]MaskPattern)
+func (self *PatternManager) MapValuesToPatterns(rawLine string) ([]PatternMatch, error) {
+	var valuesToMaskMap []PatternMatch
 	var err error
 	for _, pattern := range self.GetPatterns() {
 		var regex *regexp.Regexp
 		regex, err = regexp.Compile(pattern.Regex)
 		sensitive_values := regex.FindAllString(rawLine, -1)
-		for _, value := range sensitive_values {
-			valuesToMaskMap[value] = pattern
-		}
+		valuesToMaskMap = append(valuesToMaskMap, PatternMatch{MaskPattern: pattern, Matches: sensitive_values})
+
 	}
 	return valuesToMaskMap, err
 }

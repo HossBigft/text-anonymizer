@@ -15,29 +15,16 @@ import (
 )
 
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {
-	var replaced_line string
-	isMasksUpdated := false
-	valuesToMaskMap, _ := patternManager.MapSensitiveValuesToPatterns(rawLine)
-	for sensitive_value, maskPattern := range valuesToMaskMap {
-		if len(replaced_line) == 0 {
-			replaced_line = rawLine
-		}
-		currMask, present := maskManager.GetMask(sensitive_value)
-		if present {
-			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, currMask)
-		} else {
-			newMask := maskManager.GetRandomStringByRegex(maskPattern.Regex)
-			maskManager.UpdateMask(sensitive_value, newMask)
-			isMasksUpdated = true
-			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, newMask)
+	replaced_line := rawLine
+	valuesToMaskMap, _ := patternManager.MapValuesToPatterns(rawLine)
+
+	for _, match := range valuesToMaskMap {
+		masks := maskManager.MapValuesToMasks(match)
+		for sensitive_value, mask := range masks {
+			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 		}
 	}
-	if isMasksUpdated {
-		err := maskManager.SaveMasks()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
+
 	return replaced_line
 }
 
