@@ -3,15 +3,14 @@ package maskmanager
 import (
 	patternmanager "anonymizer/patternManager"
 	"encoding/json"
+	"github.com/lucasjones/reggen"
 	"os"
 	"path/filepath"
-
-	"github.com/lucasjones/reggen"
 )
 
 type (
 	MaskManager struct {
-		maskMap map[string]string
+		valueToMaskMap map[string]string
 	}
 )
 
@@ -21,7 +20,7 @@ var mapFilePath = filepath.Join(configDir, mapFileName)
 
 func NewMaskManager() *MaskManager {
 	newManager := MaskManager{}
-	newManager.maskMap, _ = readMasks(mapFilePath)
+	newManager.valueToMaskMap, _ = readMasks(mapFilePath)
 	return &newManager
 }
 
@@ -42,34 +41,34 @@ func readMasks(path string) (map[string]string, error) {
 }
 
 func (self *MaskManager) GetMaskMap() map[string]string {
-	return self.maskMap
+	return self.valueToMaskMap
 }
 
 func (self *MaskManager) SaveMasks() error {
 	err := os.MkdirAll(configDir, 0755)
-	valueMapJson, err := json.Marshal(self.maskMap)
+	valueMapJson, err := json.Marshal(self.valueToMaskMap)
 	err = os.WriteFile(mapFilePath, valueMapJson, 0644)
 	return err
 }
 
 func (self *MaskManager) UpdateMask(value string, mask string) {
-	self.maskMap[value] = mask
+	self.valueToMaskMap[value] = mask
 }
 
 func (self *MaskManager) MapValuesToMasks(match patternmanager.PatternMatch) map[string]string {
 	isMasksUpdated := false
 	for _, value := range match.Matches {
-		mask, present := self.maskMap[value]
+		mask, present := self.valueToMaskMap[value]
 		if present == false {
 			mask = self.GetRandomStringByRegex(match.MaskPattern.Regex)
-			self.maskMap[value] = mask
+			self.valueToMaskMap[value] = mask
 			isMasksUpdated = true
 		}
 	}
 	if isMasksUpdated {
 		self.SaveMasks()
 	}
-	return self.maskMap
+	return self.valueToMaskMap
 }
 
 func (self *MaskManager) GetRandomStringByRegex(regex string, maxLength_optional ...int) string {
@@ -81,4 +80,12 @@ func (self *MaskManager) GetRandomStringByRegex(regex string, maxLength_optional
 	}
 	randomString, _ := reggen.Generate(regex, maxLength)
 	return randomString
+}
+
+func (self *MaskManager) GetReverseMap() map[string]string {
+	reverseMap := make(map[string]string)
+	for value, mask := range self.valueToMaskMap {
+		reverseMap[mask] = value
+	}
+	return reverseMap
 }

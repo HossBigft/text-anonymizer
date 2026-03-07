@@ -8,10 +8,9 @@ import (
 	patternmanager "anonymizer/patternManager"
 	"bufio"
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {

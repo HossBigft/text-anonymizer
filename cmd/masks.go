@@ -4,14 +4,15 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	patternmanager "anonymizer/patternManager"
+	maskManager "anonymizer/maskManager"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 )
 
-var patternsCmd = &cobra.Command{
-	Use:   "patterns",
+// masksCmd represents the masks command
+var masksCmd = &cobra.Command{
+	Use:   "masks",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -27,17 +28,17 @@ to quickly create a Cobra application.`,
 		list, _ := cmd.Flags().GetBool("list")
 
 		if list {
-			maskPatterns := patternmanager.NewPatternManager().GetPatterns()
-			for _, pattern := range maskPatterns {
-				fmt.Println("Name: " + pattern.Name + ", Pattern: " + pattern.Regex)
+			maskPatterns := maskManager.NewMaskManager().GetMaskMap()
+			for value, mask := range maskPatterns {
+				fmt.Println(value + " => " + mask)
 			}
+			os.Exit(0)
 		}
-
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(patternsCmd)
+	rootCmd.AddCommand(masksCmd)
 
-	patternsCmd.Flags().BoolP("list", "l", false, "List mask patterns")
+	masksCmd.Flags().BoolP("list", "l", false, "List masks")
 }
