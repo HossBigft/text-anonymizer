@@ -9,33 +9,26 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
-	"github.com/lucasjones/reggen"
 	"github.com/spf13/cobra"
 )
 
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {
 	var replaced_line string
-	maskPatterns := patternManager.GetPatterns()
 	isMasksUpdated := false
-	for _, pattern := range maskPatterns {
+	valuesToMaskMap, _ := patternManager.MapValuesToMasks(rawLine)
+	for sensitive_value, mask := range valuesToMaskMap {
 		if len(replaced_line) == 0 {
 			replaced_line = rawLine
 		}
-		regex, _ := regexp.Compile(pattern.Regex)
-		sensitive_values := regex.FindAllString(rawLine, -1)
-		for _, sensitive_value := range sensitive_values {
-			mask, present := maskManager.GetMask(sensitive_value)
-			if present {
-				replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-			} else {
-				mask, _ = reggen.Generate(pattern.Regex, 7)
-				maskManager.UpdateMask(sensitive_value, mask)
-				isMasksUpdated = true
-				replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
-			}
+		currMask, present := maskManager.GetMask(sensitive_value)
+		if present {
+			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, currMask)
+		} else {
+			maskManager.UpdateMask(sensitive_value, mask)
+			isMasksUpdated = true
+			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 		}
 	}
 	if isMasksUpdated {
