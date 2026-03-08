@@ -6,10 +6,13 @@ package cmd
 import (
 	patternmanager "anonymizer/patternManager"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
 )
 
+var MaskPatternToAdd patternmanager.MaskPattern
 var patternsCmd = &cobra.Command{
 	Use:   "patterns",
 	Short: "A brief description of your command",
@@ -20,14 +23,29 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		patternManager := patternmanager.NewPatternManager()
 		if len(args) == 0 && cmd.Flags().NFlag() == 0 {
 			cmd.Help()
 			os.Exit(0)
 		}
 		list, _ := cmd.Flags().GetBool("list")
+		MaskPatternsToAdd, _ := cmd.Flags().GetStringArray("add")
 
+		if len(MaskPatternsToAdd) != 0 {
+			for _, entry := range MaskPatternsToAdd {
+				parts := strings.Split(entry, "=")
+				if len(parts) != 2 {
+					fmt.Fprintf(os.Stderr, "invalid entry %q, expected name=regex", entry)
+				} else {
+					newPattern := patternmanager.MaskPattern{Name: parts[0], Regex: parts[1]}
+					patternManager.AddPattern(newPattern)
+					patternManager.SavePatterns()
+					fmt.Printf("Added pattern %q", newPattern)
+				}
+			}
+		}
 		if list {
-			maskPatterns := patternmanager.NewPatternManager().GetPatterns()
+			maskPatterns := patternManager.GetPatterns()
 			for _, pattern := range maskPatterns {
 				fmt.Println("Name: " + pattern.Name + ", Pattern: " + pattern.Regex)
 			}
@@ -38,6 +56,6 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(patternsCmd)
-
 	patternsCmd.Flags().BoolP("list", "l", false, "List mask patterns")
+	patternsCmd.Flags().StringArrayP("add", "a", []string{}, "Add mask pattern in name=regex format")
 }

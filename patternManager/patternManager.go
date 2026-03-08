@@ -84,3 +84,7 @@ func (self *PatternManager) MapValuesToPatterns(rawLine string) ([]PatternMatch,
 	}
 	return valuesToMaskMap, err
 }
+
+func (self *PatternManager) AddPattern(pattern MaskPattern) {
+	self.maskPatterns = append(self.maskPatterns, pattern)
+}
