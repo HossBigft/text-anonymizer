@@ -28,9 +28,8 @@ to quickly create a Cobra application.`,
 			cmd.Help()
 			os.Exit(0)
 		}
-		list, _ := cmd.Flags().GetBool("list")
-		MaskPatternsToAdd, _ := cmd.Flags().GetStringArray("add")
 
+		MaskPatternsToAdd, _ := cmd.Flags().GetStringArray("add")
 		if len(MaskPatternsToAdd) != 0 {
 			for _, entry := range MaskPatternsToAdd {
 				parts := strings.Split(entry, "=")
@@ -44,13 +43,24 @@ to quickly create a Cobra application.`,
 				}
 			}
 		}
+
+		list, _ := cmd.Flags().GetBool("list")
 		if list {
 			maskPatterns := patternManager.GetPatterns()
 			for _, pattern := range maskPatterns {
 				fmt.Println("Name: " + pattern.Name + ", Pattern: " + pattern.Regex)
 			}
 		}
-
+		patternNameToDelete, _ := cmd.Flags().GetString("delete")
+		if len(patternNameToDelete) != 0 {
+			removedPattern, notFound := patternManager.RemovePatternByName(patternNameToDelete)
+			if notFound != nil {
+				fmt.Fprintf(os.Stderr, "Pattern with name %q not found", patternNameToDelete)
+			} else {
+				fmt.Printf("Removed pattern %q", removedPattern)
+				patternManager.SavePatterns()
+			}
+		}
 	},
 }
 
@@ -58,4 +68,5 @@ func init() {
 	rootCmd.AddCommand(patternsCmd)
 	patternsCmd.Flags().BoolP("list", "l", false, "List mask patterns")
 	patternsCmd.Flags().StringArrayP("add", "a", []string{}, "Add mask pattern in name=regex format")
+	patternsCmd.Flags().StringP("delete", "d", "", "Delete mask patter by name")
 }
