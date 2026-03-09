@@ -1,11 +1,8 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
-	maskmanager "anonymizer/maskManager"
-	patternmanager "anonymizer/patternManager"
+	maskmanager "ae/maskManager"
+	patternmanager "ae/patternManager"
 	"bufio"
 	"fmt"
 	"os"
@@ -39,14 +36,13 @@ func unmask(rawLine string, maskManager maskmanager.MaskManager) string {
 
 var filePath string
 var rootCmd = &cobra.Command{
-	Use:   "anonymizer",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "ae",
+	Short: "Mask sensitive values in text with lookalike text",
+	Long: `Ae is CLI program to mask sensitive values in given text. It replaces values with randomly generated strings based on regex patterns used for extracting. Masks are persistent and savedon disk. Also it can unmask masked text back. 
+	Usage:
+	cat example.txt | ae
+	ae -f path/example.txt
+	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		maskManager := maskmanager.NewMaskManager()
 		patternManager := patternmanager.NewPatternManager()

@@ -1,4 +1,4 @@
-module anonymizer
+module ae
 
 go 1.25.7
 

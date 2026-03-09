@@ -1,7 +1,7 @@
 package maskmanager
 
 import (
-	patternManager "anonymizer/patternManager"
+	patternManager "ae/patternManager"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,7 +20,7 @@ type (
 	}
 )
 
-var configDir = filepath.Join(os.Getenv("HOME"), ".config", "anonymizer")
+var configDir = filepath.Join(os.Getenv("HOME"), ".config", "ae")
 var mapFileName = "map.json"
 var mapFilePath = filepath.Join(configDir, mapFileName)
 

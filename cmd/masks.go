@@ -1,25 +1,16 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
-	maskManager "anonymizer/maskManager"
+	maskManager "ae/maskManager"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 )
 
-// masksCmd represents the masks command
 var masksCmd = &cobra.Command{
 	Use:   "masks",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Management of created masks for sensitive values",
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		maskManager := maskManager.NewMaskManager()
 		if len(args) == 0 && cmd.Flags().NFlag() == 0 {

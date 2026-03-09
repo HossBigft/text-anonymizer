@@ -33,7 +33,7 @@ func NewPatternManager() *PatternManager {
 }
 
 var configFileName = "maskPatterns.json"
-var configDir = filepath.Join(os.Getenv("HOME") + "/.config/anonymizer/")
+var configDir = filepath.Join(os.Getenv("HOME") + "/.config/ae/")
 var configFilePath = filepath.Join(configDir, configFileName)
 
 func readConfig(path string) (map[string]MaskPattern, error) {
@@ -48,7 +48,7 @@ func readConfig(path string) (map[string]MaskPattern, error) {
 
 func (self *PatternManager) loadConfig() error {
 	IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
-	FQDN_REGEX := `^(?!.*\.(?:php)$)(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
+	FQDN_REGEX := `(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
 	patterns, err := readConfig(configFilePath)
 	if err != nil || len(patterns) == 0 {
 		patterns["ipv4"] = MaskPattern{Name: "ipv4", Regex: IPV4_REGEX}
