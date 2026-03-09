@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var MaskPatternToAdd patternmanager.MaskPattern
+var MaskPatternToAdd patternmanager.Pattern
 var patternsCmd = &cobra.Command{
 	Use:   "patterns",
 	Short: "Management of mask patterns",
@@ -28,7 +28,7 @@ var patternsCmd = &cobra.Command{
 				if len(parts) != 2 {
 					fmt.Fprintf(os.Stderr, "invalid entry %q, expected name=regex", entry)
 				} else {
-					newPattern := patternmanager.MaskPattern{Name: parts[0], Regex: parts[1]}
+					newPattern := patternmanager.Pattern{Name: parts[0], Regex: parts[1]}
 					patternManager.AddPattern(newPattern)
 					patternManager.SavePatterns()
 					fmt.Printf("Added pattern %q", newPattern)

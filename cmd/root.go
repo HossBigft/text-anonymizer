@@ -14,7 +14,6 @@ import (
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {
 	replaced_line := rawLine
 	valuesToMaskMap, _ := patternManager.MapValuesToPatterns(rawLine)
-
 	for _, match := range valuesToMaskMap {
 		masks := maskManager.MapValuesToMasks(match)
 		for sensitive_value, mask := range masks {
