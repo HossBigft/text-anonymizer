@@ -3,6 +3,7 @@ package patternmanager
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -31,11 +32,12 @@ func NewPatternManager() *PatternManager {
 	return &newManager
 }
 
+var configFileName = "maskPatterns.json"
 var configDir = filepath.Join(os.Getenv("HOME") + "/.config/anonymizer/")
-var configFilePath = os.Getenv("HOME") + "/.config/anonymizer/maskPatterns.json"
+var configFilePath = filepath.Join(configDir, configFileName)
 
-func readConfig(path string) ([]MaskPattern, error) {
-	var patterns []MaskPattern
+func readConfig(path string) (map[string]MaskPattern, error) {
+	patterns := make(map[string]MaskPattern)
 	patternsFileHandle, err := os.ReadFile(path)
 	if err != nil {
 		return patterns, err
@@ -46,11 +48,15 @@ func readConfig(path string) ([]MaskPattern, error) {
 
 func (self *PatternManager) loadConfig() error {
 	IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
-	FQDN_REGEX := `(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
+	FQDN_REGEX := `^(?!.*\.(?:php)$)(?:[_a-z0-9](?:[_a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)`
 	patterns, err := readConfig(configFilePath)
-	if err != nil {
-		patterns = append(patterns, MaskPattern{Name: "ipv4", Regex: IPV4_REGEX})
-		patterns = append(patterns, MaskPattern{Name: "fqdn", Regex: FQDN_REGEX})
+	if err != nil || len(patterns) == 0 {
+		patterns["ipv4"] = MaskPattern{Name: "ipv4", Regex: IPV4_REGEX}
+		patterns["fqdn"] = MaskPattern{Name: "fqdn", Regex: FQDN_REGEX}
+		for _, pattern := range patterns {
+			self.maskPatterns[pattern.Name] = pattern
+		}
+		fmt.Fprintf(os.Stderr, "Config file not found. Created new one in %q \n", configFilePath)
 		self.SavePatterns()
 	}
 	for _, pattern := range patterns {
@@ -85,6 +91,11 @@ func (self *PatternManager) MapValuesToPatterns(rawLine string) ([]PatternMatch,
 	for _, pattern := range self.GetPatterns() {
 		var regex *regexp.Regexp
 		regex, err = regexp.Compile(pattern.Regex)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to compile regex %q\n", pattern.Regex)
+			self.RemovePatternByName(pattern.Name)
+			continue
+		}
 		sensitive_values := regex.FindAllString(rawLine, -1)
 		valuesToMaskMap = append(valuesToMaskMap, PatternMatch{MaskPattern: pattern, Matches: sensitive_values})
 

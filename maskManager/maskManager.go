@@ -1,9 +1,10 @@
 package maskmanager
 
 import (
-	patternmanager "anonymizer/patternManager"
+	patternManager "anonymizer/patternManager"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/lucasjones/reggen"
 	"os"
 	"path/filepath"
@@ -25,7 +26,7 @@ var mapFilePath = filepath.Join(configDir, mapFileName)
 
 func NewMaskManager() *MaskManager {
 	newManager := MaskManager{}
-	newManager.valueToMaskMap, _ = readMasks(mapFilePath)
+	newManager.valueToMaskMap, _ = loadMasks(mapFilePath)
 	return &newManager
 }
 
@@ -35,10 +36,11 @@ func check(e error) {
 	}
 }
 
-func readMasks(path string) (map[string]string, error) {
+func loadMasks(path string) (map[string]string, error) {
 	masks := make(map[string]string)
 	masksFileHandle, err := os.ReadFile(path)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Masks file not found. Will be created in %q \n", mapFilePath)
 		return masks, err
 	}
 	err = json.Unmarshal(masksFileHandle, &masks)
@@ -60,7 +62,7 @@ func (self *MaskManager) UpdateMask(value string, mask string) {
 	self.valueToMaskMap[value] = mask
 }
 
-func (self *MaskManager) MapValuesToMasks(match patternmanager.PatternMatch) map[string]string {
+func (self *MaskManager) MapValuesToMasks(match patternManager.PatternMatch) map[string]string {
 	isMasksUpdated := false
 	for _, value := range match.Matches {
 		mask, present := self.valueToMaskMap[value]
