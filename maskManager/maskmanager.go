@@ -3,9 +3,10 @@ package maskmanager
 import (
 	patternmanager "anonymizer/patternManager"
 	"encoding/json"
-	"github.com/lucasjones/reggen"
 	"os"
 	"path/filepath"
+
+	"github.com/lucasjones/reggen"
 )
 
 type (
@@ -82,7 +83,7 @@ func (self *MaskManager) GetRandomStringByRegex(regex string, maxLength_optional
 	return randomString
 }
 
-func (self *MaskManager) GetReverseMap() map[string]string {
+func (self *MaskManager) GetMasksToValuesMap() map[string]string {
 	reverseMap := make(map[string]string)
 	for value, mask := range self.valueToMaskMap {
 		reverseMap[mask] = value

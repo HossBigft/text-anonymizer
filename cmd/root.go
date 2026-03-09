@@ -8,9 +8,10 @@ import (
 	patternmanager "anonymizer/patternManager"
 	"bufio"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {
@@ -28,7 +29,7 @@ func mask(rawLine string, patternManager patternmanager.PatternManager, maskMana
 }
 func unmask(rawLine string, maskManager maskmanager.MaskManager) string {
 	replaced_line := rawLine
-	masks := maskManager.GetReverseMap()
+	masks := maskManager.GetMasksToValuesMap()
 	for sensitive_value, mask := range masks {
 		replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
 	}
