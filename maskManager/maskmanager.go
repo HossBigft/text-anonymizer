@@ -3,15 +3,19 @@ package maskmanager
 import (
 	patternmanager "anonymizer/patternManager"
 	"encoding/json"
+	"errors"
+	"github.com/lucasjones/reggen"
 	"os"
 	"path/filepath"
-
-	"github.com/lucasjones/reggen"
 )
 
 type (
 	MaskManager struct {
 		valueToMaskMap map[string]string
+	}
+	ValueMask struct {
+		Value string
+		Mask  string
 	}
 )
 
@@ -89,4 +93,18 @@ func (self *MaskManager) GetMasksToValuesMap() map[string]string {
 		reverseMap[mask] = value
 	}
 	return reverseMap
+}
+
+func (self *MaskManager) AddMask(mask ValueMask) {
+	self.valueToMaskMap[mask.Value] = mask.Mask
+}
+
+func (self *MaskManager) RemoveMaskByValue(value string) (ValueMask, error) {
+	var err error
+	mask, present := self.valueToMaskMap[value]
+	if !present {
+		err = errors.New("Mask not found")
+	}
+	delete(self.valueToMaskMap, value)
+	return ValueMask{Value: value, Mask: mask}, err
 }

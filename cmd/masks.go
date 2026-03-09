@@ -21,6 +21,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		maskManager := maskManager.NewMaskManager()
 		if len(args) == 0 && cmd.Flags().NFlag() == 0 {
 			cmd.Help()
 			os.Exit(0)
@@ -28,11 +29,21 @@ to quickly create a Cobra application.`,
 		list, _ := cmd.Flags().GetBool("list")
 
 		if list {
-			maskPatterns := maskManager.NewMaskManager().GetMaskMap()
+			maskPatterns := maskManager.GetMaskMap()
 			for value, mask := range maskPatterns {
 				fmt.Println(value + " => " + mask)
 			}
 			os.Exit(0)
+		}
+		maskValueToDelete, _ := cmd.Flags().GetString("delete")
+		if len(maskValueToDelete) != 0 {
+			removedMask, notFound := maskManager.RemoveMaskByValue(maskValueToDelete)
+			if notFound != nil {
+				fmt.Fprintf(os.Stderr, "Mask with value %q not found", maskValueToDelete)
+			} else {
+				fmt.Printf("Removed mask %q", removedMask)
+				maskManager.SaveMasks()
+			}
 		}
 	},
 }
@@ -41,4 +52,5 @@ func init() {
 	rootCmd.AddCommand(masksCmd)
 
 	masksCmd.Flags().BoolP("list", "l", false, "List masks")
+	masksCmd.Flags().StringP("delete", "d", "", "Delete mask by value")
 }
