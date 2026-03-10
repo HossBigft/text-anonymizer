@@ -110,3 +110,7 @@ func (self *MaskManager) RemoveMaskByValue(value string) (ValueMask, error) {
 	delete(self.valueToMaskMap, value)
 	return ValueMask{Value: value, Mask: mask}, err
 }
+
+func (self *MaskManager) AddPattern(mask ValueMask) {
+	self.valueToMaskMap[mask.Value] = mask.Mask
+}

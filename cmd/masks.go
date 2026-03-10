@@ -2,9 +2,12 @@ package cmd
 
 import (
 	maskManager "ae/maskManager"
+	maskmanager "ae/maskManager"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 var masksCmd = &cobra.Command{
@@ -17,8 +20,8 @@ var masksCmd = &cobra.Command{
 			cmd.Help()
 			os.Exit(0)
 		}
-		list, _ := cmd.Flags().GetBool("list")
 
+		list, _ := cmd.Flags().GetBool("list")
 		if list {
 			maskPatterns := maskManager.GetMaskMap()
 			for value, mask := range maskPatterns {
@@ -26,6 +29,7 @@ var masksCmd = &cobra.Command{
 			}
 			os.Exit(0)
 		}
+
 		maskValueToDelete, _ := cmd.Flags().GetString("delete")
 		if len(maskValueToDelete) != 0 {
 			removedMask, notFound := maskManager.RemoveMaskByValue(maskValueToDelete)
@@ -36,6 +40,20 @@ var masksCmd = &cobra.Command{
 				maskManager.SaveMasks()
 			}
 		}
+		MasksToAdd, _ := cmd.Flags().GetStringArray("add")
+		if len(MasksToAdd) != 0 {
+			for _, entry := range MasksToAdd {
+				parts := strings.Split(entry, "=")
+				if len(parts) != 2 {
+					fmt.Fprintf(os.Stderr, "invalid entry %q, expected value=regex", entry)
+				} else {
+					newPattern := maskmanager.ValueMask{Value: parts[0], Mask: parts[1]}
+					maskManager.AddPattern(newPattern)
+					maskManager.SaveMasks()
+					fmt.Printf("Added mask %q", newPattern)
+				}
+			}
+		}
 	},
 }
 
@@ -44,4 +62,5 @@ func init() {
 
 	masksCmd.Flags().BoolP("list", "l", false, "List masks")
 	masksCmd.Flags().StringP("delete", "d", "", "Delete mask by value")
+	masksCmd.Flags().StringArrayP("add", "a", []string{}, "Add mask in value=mask format")
 }
