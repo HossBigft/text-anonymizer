@@ -96,6 +96,7 @@ var rootCmd = &cobra.Command{
 		}
 
 	},
+	Args: cobra.ArbitraryArgs,
 }
 
 func check(e error) {

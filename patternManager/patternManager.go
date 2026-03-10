@@ -56,11 +56,13 @@ func readConfig(path string) (map[string]Pattern, error) {
 func (self *PatternManager) loadPatterns() error {
 	IPV4_REGEX := `(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}`
 	FQDN_REGEX := `[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}`
+	SERVER_NAME := `[a-zA-Z]+-?\d{1,3}`
 	patterns, err := readConfig(patternsFilePath)
 	if err != nil || len(patterns) == 0 {
 		patterns = make(map[string]Pattern)
 		patterns["ipv4"] = Pattern{Name: "ipv4", Regex: IPV4_REGEX}
 		patterns["fqdn"] = Pattern{Name: "fqdn", Regex: FQDN_REGEX}
+		patterns["server-name"] = Pattern{Name: "server-name", Regex:SERVER_NAME}
 		for _, pattern := range patterns {
 			self.maskPatterns[pattern.Name] = pattern
 		}
@@ -74,7 +76,7 @@ func (self *PatternManager) loadPatterns() error {
 }
 
 func (self *PatternManager) loadFilters() error {
-	PHP_REGEX := `\.php$`
+	PHP_REGEX := `\.php|get$`
 	filters, err := readConfig(filtersFilePath)
 	if err != nil || len(filters) == 0 {
 		filters = make(map[string]Pattern)
