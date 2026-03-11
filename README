@@ -1,0 +1,11 @@
+ae is program for masking sensitive values in text with preserved context. It extract sensitive values by regex patterns, then filters out extracted values based on filter patternn. Then it generates random strings based on mask patterns and maps them to original values.
+```
+ae example.com
+qm2zvp8.e.2.chgwn0q3v.pxnjaj.28cyqwte.7nxi.ap
+```
+
+ Masks are persistent and saved to disk. Text also can be unmasked back to original
+ ``` 
+ae -r qm2zvp8.e.2.chgwn0q3v.pxnjaj.28cyqwte.7nxi.ap
+example.com
+ ``` 
