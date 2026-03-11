@@ -79,6 +79,9 @@ var rootCmd = &cobra.Command{
 						}
 						fmt.Println(replaced_line)
 					}
+				} else {
+
+					cmd.Help()
 				}
 			} else {
 				for _, val := range strings.Split(args[0], "\n") {
