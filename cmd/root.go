@@ -37,8 +37,9 @@ var filePath string
 var rootCmd = &cobra.Command{
 	Use:   "ae",
 	Short: "Mask sensitive values in text with lookalike text",
-	Long: `Ae is CLI program to mask sensitive values in given text. It replaces values with randomly generated strings based on regex patterns used for extracting. Masks are persistent and savedon disk. Also it can unmask masked text back. 
+	Long: `Ae is CLI program to mask sensitive values in given text and print masked text. It replaces values with randomly generated strings based on regex patterns used for extracting. Masks are persistent and saved on disk. Also it can unmask masked text back. 
 	Usage:
+	ae example.com
 	cat example.txt | ae
 	ae -f path/example.txt
 	`,
