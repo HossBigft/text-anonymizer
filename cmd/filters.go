@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	patternmanager "ae/patternManager"
 	"fmt"
 	"os"
 	"strings"
+
+	patternmanager "github.com/HossBigft/ae/patternManager"
 
 	"github.com/spf13/cobra"
 )

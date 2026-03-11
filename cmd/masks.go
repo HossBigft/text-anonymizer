@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	maskManager "ae/maskManager"
-	maskmanager "ae/maskManager"
 	"fmt"
 	"os"
 	"strings"
+
+	maskManager "github.com/HossBigft/ae/maskManager"
+	maskmanager "github.com/HossBigft/ae/maskManager"
 
 	"github.com/spf13/cobra"
 )

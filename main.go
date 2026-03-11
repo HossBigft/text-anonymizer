@@ -1,6 +1,6 @@
 package main
 
-import "ae/cmd"
+import "github.com/HossBigft/ae/cmd"
 
 func main() {
 	cmd.Execute()

@@ -1,13 +1,14 @@
 package maskmanager
 
 import (
-	patternManager "ae/patternManager"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lucasjones/reggen"
 	"os"
 	"path/filepath"
+
+	patternManager "github.com/HossBigft/ae/patternManager"
+	"github.com/lucasjones/reggen"
 )
 
 type (

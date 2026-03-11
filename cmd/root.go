@@ -1,12 +1,13 @@
 package cmd
 
 import (
-	maskmanager "ae/maskManager"
-	patternmanager "ae/patternManager"
 	"bufio"
 	"fmt"
 	"os"
 	"strings"
+
+	maskmanager "github.com/HossBigft/ae/maskManager"
+	patternmanager "github.com/HossBigft/ae/patternManager"
 
 	"github.com/spf13/cobra"
 )
@@ -37,7 +38,7 @@ var filePath string
 var rootCmd = &cobra.Command{
 	Use:   "ae",
 	Short: "Mask sensitive values in text with lookalike text",
-	Long: `Ae is CLI program to mask sensitive values in given text and print masked text. It replaces values with randomly generated strings based on regex patterns used for extracting. Masks are persistent and saved on disk. Also it can unmask masked text back. 
+	Long: `ae is CLI program to mask sensitive values in given text and print masked text. It replaces values with randomly generated strings based on regex patterns used for extracting. Masks are persistent and saved on disk. Also it can unmask masked text back. 
 	Usage:
 	ae example.com
 	cat example.txt | ae

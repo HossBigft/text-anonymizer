@@ -1,4 +1,4 @@
-module github.com/HossBigft/text-anonymizer
+module github.com/HossBigft/ae
 
 go 1.25.7
 
