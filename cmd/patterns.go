@@ -31,7 +31,7 @@ var patternsCmd = &cobra.Command{
 					newPattern := patternmanager.Pattern{Name: parts[0], Regex: parts[1]}
 					patternManager.AddPattern(newPattern)
 					patternManager.SavePatterns()
-					fmt.Printf("Added pattern %q", newPattern)
+					fmt.Fprintf(os.Stderr, "Added pattern %q", newPattern)
 				}
 			}
 		}
@@ -49,7 +49,7 @@ var patternsCmd = &cobra.Command{
 			if notFound != nil {
 				fmt.Fprintf(os.Stderr, "Pattern with name %q not found", patternNameToDelete)
 			} else {
-				fmt.Printf("Removed pattern %q", removedPattern)
+				fmt.Fprintf(os.Stderr, "Removed pattern %q", removedPattern)
 				patternManager.SavePatterns()
 			}
 		}

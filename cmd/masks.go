@@ -36,7 +36,7 @@ var masksCmd = &cobra.Command{
 			if notFound != nil {
 				fmt.Fprintf(os.Stderr, "Mask with value %q not found", maskValueToDelete)
 			} else {
-				fmt.Printf("Removed mask %q", removedMask)
+				fmt.Fprintf(os.Stderr, "Removed mask %q", removedMask)
 				maskManager.SaveMasks()
 			}
 		}
@@ -47,10 +47,10 @@ var masksCmd = &cobra.Command{
 				if len(parts) != 2 {
 					fmt.Fprintf(os.Stderr, "invalid entry %q, expected value=regex", entry)
 				} else {
-					newPattern := maskmanager.ValueMask{Value: parts[0], Mask: parts[1]}
-					maskManager.AddPattern(newPattern)
+					newMask := maskmanager.ValueMask{Value: parts[0], Mask: parts[1]}
+					maskManager.AddPattern(newMask)
 					maskManager.SaveMasks()
-					fmt.Printf("Added mask %q", newPattern)
+					fmt.Fprintf(os.Stderr, "Added mask %q", newMask)
 				}
 			}
 		}
