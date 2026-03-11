@@ -62,7 +62,7 @@ func (self *PatternManager) loadPatterns() error {
 		patterns = make(map[string]Pattern)
 		patterns["ipv4"] = Pattern{Name: "ipv4", Regex: IPV4_REGEX}
 		patterns["fqdn"] = Pattern{Name: "fqdn", Regex: FQDN_REGEX}
-		patterns["server-name"] = Pattern{Name: "server-name", Regex:SERVER_NAME}
+		patterns["server-name"] = Pattern{Name: "server-name", Regex: SERVER_NAME}
 		for _, pattern := range patterns {
 			self.maskPatterns[pattern.Name] = pattern
 		}
@@ -160,6 +160,7 @@ func (self *PatternManager) MapValuesToPatterns(rawLine string) ([]PatternMatch,
 func (self *PatternManager) AddPattern(pattern Pattern) {
 	self.maskPatterns[pattern.Name] = pattern
 }
+
 func (self *PatternManager) RemovePatternByName(name string) (Pattern, error) {
 	var err error
 	pattern, present := self.maskPatterns[name]
@@ -169,6 +170,7 @@ func (self *PatternManager) RemovePatternByName(name string) (Pattern, error) {
 	delete(self.maskPatterns, name)
 	return pattern, err
 }
+
 func (self *PatternManager) RemoveFilterByName(name string) (Pattern, error) {
 	var err error
 	pattern, present := self.filterPatterns[name]
@@ -177,4 +179,16 @@ func (self *PatternManager) RemoveFilterByName(name string) (Pattern, error) {
 	}
 	delete(self.filterPatterns, name)
 	return pattern, err
+}
+
+func (self *PatternManager) AddFilter(filter Pattern) {
+	self.filterPatterns[filter.Name] = filter
+}
+
+func (self *PatternManager) GetFilters() []Pattern {
+	filterPatterns := []Pattern{}
+	for _, filter := range self.filterPatterns {
+		filterPatterns = append(filterPatterns, filter)
+	}
+	return filterPatterns
 }
