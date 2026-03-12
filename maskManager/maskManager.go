@@ -14,6 +14,7 @@ import (
 type (
 	MaskManager struct {
 		valueToMaskMap map[string]string
+		maskToValueMap map[string]string
 	}
 	ValueMask struct {
 		Value string
@@ -28,6 +29,11 @@ var mapFilePath = filepath.Join(configDir, mapFileName)
 func NewMaskManager() *MaskManager {
 	newManager := MaskManager{}
 	newManager.valueToMaskMap, _ = loadMasks(mapFilePath)
+	newManager.maskToValueMap = make(map[string]string)
+	for value, mask := range newManager.valueToMaskMap {
+		newManager.maskToValueMap[mask] = value
+	}
+
 	return &newManager
 }
 
@@ -66,11 +72,15 @@ func (self *MaskManager) UpdateMask(value string, mask string) {
 func (self *MaskManager) MapValuesToMasks(match patternManager.PatternMatch) map[string]string {
 	isMasksUpdated := false
 	for _, value := range match.Matches {
-		mask, present := self.valueToMaskMap[value]
+		_, present := self.valueToMaskMap[value]
 		if present == false {
-			mask = self.GetRandomStringByRegex(match.MaskPattern.Regex)
-			self.valueToMaskMap[value] = mask
-			isMasksUpdated = true
+			_, presentInMasks := self.maskToValueMap[value]
+			if !presentInMasks {
+				newMask := self.GetRandomStringByRegex(match.MaskPattern.Regex)
+				self.valueToMaskMap[value] = newMask
+				self.maskToValueMap[newMask] = value
+				isMasksUpdated = true
+			}
 		}
 	}
 	if isMasksUpdated {
@@ -91,11 +101,7 @@ func (self *MaskManager) GetRandomStringByRegex(regex string, maxLength_optional
 }
 
 func (self *MaskManager) GetMasksToValuesMap() map[string]string {
-	reverseMap := make(map[string]string)
-	for value, mask := range self.valueToMaskMap {
-		reverseMap[mask] = value
-	}
-	return reverseMap
+	return self.maskToValueMap
 }
 
 func (self *MaskManager) AddMask(mask ValueMask) {
