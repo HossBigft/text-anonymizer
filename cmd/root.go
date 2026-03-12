@@ -47,7 +47,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		maskManager := maskmanager.NewMaskManager()
 		patternManager := patternmanager.NewPatternManager()
-		reverse, _ := cmd.Flags().GetBool("reverse")
+		decode, _ := cmd.Flags().GetBool("decode")
 
 		if len(filePath) > 0 {
 			file, err := os.Open(filePath)
@@ -58,7 +58,7 @@ var rootCmd = &cobra.Command{
 			for scanner.Scan() {
 				line := scanner.Text()
 				var replaced_line string
-				if reverse {
+				if decode {
 					replaced_line = unmask(line, *maskManager)
 				} else {
 					replaced_line = mask(line, *patternManager, *maskManager)
@@ -74,7 +74,7 @@ var rootCmd = &cobra.Command{
 					for scanner.Scan() {
 						line := scanner.Text()
 						var replaced_line string
-						if reverse {
+						if decode {
 							replaced_line = unmask(line, *maskManager)
 						} else {
 							replaced_line = mask(line, *patternManager, *maskManager)
@@ -89,7 +89,7 @@ var rootCmd = &cobra.Command{
 				for _, val := range strings.Split(args[0], "\n") {
 					line := val
 					var replaced_line string
-					if reverse {
+					if decode {
 						replaced_line = unmask(line, *maskManager)
 					} else {
 						replaced_line = mask(line, *patternManager, *maskManager)
@@ -119,5 +119,5 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringVarP(&filePath, "file", "f", "", "File to process")
-	rootCmd.Flags().BoolP("reverse", "r", false, "Unmask masked text")
+	rootCmd.Flags().BoolP("decode", "d", false, "Decode masked text")
 }
