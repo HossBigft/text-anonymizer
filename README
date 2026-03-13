@@ -1,17 +1,29 @@
-ae is program for masking sensitive values in text with preserved context. It extract sensitive values by regex patterns, then filters out extracted values based on filter patternn. Then it generates random strings based on mask patterns and maps them to original values.
+ae is a command-line tool for masking sensitive values in text while preserving its overall structure and context. It extract sensitive values by regex patterns, then filters out extracted values based on filter patterns. Then it generates random strings based on mask patterns and maps them to original values.
+
+## Usage
+Mask text
 ```
 ae example.com
 qm2zvp8.e.2.chgwn0q3v.pxnjaj.28cyqwte.7nxi.ap
 ```
 
- Masks are persistent and saved to disk. Text also can be unmasked back to original
-
- ``` 
+Unmask text
+```
 ae -r qm2zvp8.e.2.chgwn0q3v.pxnjaj.28cyqwte.7nxi.ap
 example.com
- ``` 
+```
 
-To install
+## How it works
+
+- Mask patterns extract sensitive values from the input text using regular expressions.
+- Extracted values are matched with their corresponding mask patterns.
+- Filter patterns optionally exclude values that should not be masked.
+- For each remaining value, a random mask is generated according to the mask pattern (if one does not already exist).
+- The mapping between original values and masks is stored on disk.
+- The text is printed with all sensitive values replaced by their masks.
+
+## Installation
+
 ```
 go install github.com/HossBigft/ae
 ```
