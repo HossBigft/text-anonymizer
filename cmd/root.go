@@ -18,20 +18,20 @@ func mask(rawLine string, patternManager patternmanager.PatternManager, maskMana
 	for _, match := range valuesToMaskMap {
 		masks := maskManager.MapValuesToMasks(match)
 		for sensitive_value, mask := range masks {
-			replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+			replaced_line = strings.ReplaceAll(strings.ToLower(replaced_line), sensitive_value, mask)
 		}
 	}
 
 	return replaced_line
 }
 func unmask(rawLine string, maskManager maskmanager.MaskManager) string {
-	replaced_line := rawLine
+	line_to_replace := rawLine
 	masks := maskManager.GetMasksToValuesMap()
 	for sensitive_value, mask := range masks {
-		replaced_line = strings.ReplaceAll(replaced_line, sensitive_value, mask)
+		line_to_replace = strings.ReplaceAll(strings.ToLower(line_to_replace), sensitive_value, mask)
 	}
 
-	return replaced_line
+	return line_to_replace
 }
 
 var filePath string
