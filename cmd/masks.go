@@ -49,7 +49,7 @@ var masksCmd = &cobra.Command{
 					fmt.Fprintf(os.Stderr, "invalid entry %q, expected value=regex", entry)
 				} else {
 					newMask := maskmanager.ValueMask{Value: parts[0], Mask: parts[1]}
-					maskManager.AddPattern(newMask)
+					maskManager.AddMask(newMask)
 					maskManager.SaveMasks()
 					fmt.Fprintf(os.Stderr, "Added mask %q", newMask)
 				}
