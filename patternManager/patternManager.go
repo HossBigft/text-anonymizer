@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 )
 
 type (
@@ -131,7 +130,7 @@ func (self *PatternManager) MapValuesToPatterns(rawLine string) ([]PatternMatch,
 			self.RemovePatternByName(pattern.Name)
 			continue
 		}
-		sensitive_values := regex.FindAllString(strings.ToLower(rawLine), -1)
+		sensitive_values := regex.FindAllString(rawLine, -1)
 		matchList = append(matchList, PatternMatch{MaskPattern: pattern, Matches: sensitive_values})
 
 	}

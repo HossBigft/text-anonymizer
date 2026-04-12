@@ -12,23 +12,46 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func replaceAllCaseInsensitive(s, old, new string) string {
+    lowerS := strings.ToLower(s)
+    lowerOld := strings.ToLower(old)
+    
+    if lowerOld == "" {
+        return s
+    }
+    
+    var result strings.Builder
+    for {
+        idx := strings.Index(lowerS, lowerOld)
+        if idx == -1 {
+            result.WriteString(s)
+            break
+        }
+        result.WriteString(s[:idx])
+        result.WriteString(new)
+        s = s[idx+len(old):]
+        lowerS = lowerS[idx+len(lowerOld):]
+    }
+    return result.String()
+}
+
 func mask(rawLine string, patternManager patternmanager.PatternManager, maskManager maskmanager.MaskManager) string {
-	replaced_line := rawLine
+	line_to_replace := rawLine
 	valuesToMaskMap, _ := patternManager.MapValuesToPatterns(rawLine)
 	for _, match := range valuesToMaskMap {
 		masks := maskManager.MapValuesToMasks(match)
 		for sensitive_value, mask := range masks {
-			replaced_line = strings.ReplaceAll(strings.ToLower(replaced_line), sensitive_value, mask)
+			line_to_replace = replaceAllCaseInsensitive(line_to_replace, sensitive_value, mask)
 		}
 	}
 
-	return replaced_line
+	return line_to_replace
 }
 func unmask(rawLine string, maskManager maskmanager.MaskManager) string {
 	line_to_replace := rawLine
 	masks := maskManager.GetMasksToValuesMap()
 	for sensitive_value, mask := range masks {
-		line_to_replace = strings.ReplaceAll(strings.ToLower(line_to_replace), sensitive_value, mask)
+		line_to_replace = replaceAllCaseInsensitive(line_to_replace, sensitive_value, mask)
 	}
 
 	return line_to_replace
