@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
-
 	patternManager "github.com/HossBigft/ae/patternManager"
 	"github.com/lucasjones/reggen"
 )
@@ -32,7 +30,7 @@ func NewMaskManager() *MaskManager {
 	newManager.valueToMaskMap, _ = loadMasks(mapFilePath)
 	newManager.maskToValueMap = make(map[string]string)
 	for value, mask := range newManager.valueToMaskMap {
-		newManager.maskToValueMap[strings.ToLower(mask)] = strings.ToLower(value)
+		newManager.maskToValueMap[mask] = value
 	}
 
 	return &newManager
@@ -67,7 +65,7 @@ func (self *MaskManager) SaveMasks() error {
 }
 
 func (self *MaskManager) UpdateMask(value string, mask string) {
-	self.valueToMaskMap[strings.ToLower(value)] = strings.ToLower(mask)
+	self.valueToMaskMap[value] = mask
 }
 
 func (self *MaskManager) MapValuesToMasks(match patternManager.PatternMatch) map[string]string {
@@ -78,8 +76,8 @@ func (self *MaskManager) MapValuesToMasks(match patternManager.PatternMatch) map
 			_, presentInMasks := self.maskToValueMap[value]
 			if !presentInMasks {
 				newMask := self.GetRandomStringByRegex(match.MaskPattern.Regex)
-				self.valueToMaskMap[value] = strings.ToLower(newMask)
-				self.maskToValueMap[newMask] = strings.ToLower(value)
+				self.valueToMaskMap[value] = newMask
+				self.maskToValueMap[newMask] = value
 				isMasksUpdated = true
 			}
 		}
@@ -106,7 +104,7 @@ func (self *MaskManager) GetMasksToValuesMap() map[string]string {
 }
 
 func (self *MaskManager) AddMask(mask ValueMask) {
-	self.valueToMaskMap[strings.ToLower(mask.Value)] = strings.ToLower(mask.Mask)
+	self.valueToMaskMap[mask.Value] = mask.Mask
 }
 
 func (self *MaskManager) RemoveMaskByValue(value string) (ValueMask, error) {
